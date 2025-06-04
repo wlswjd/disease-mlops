@@ -1,0 +1,7 @@
+pandas
+scikit-learn
+mlflow
+bentoml
+apache-airflow==2.7.0
+matplotlib
+jupyter

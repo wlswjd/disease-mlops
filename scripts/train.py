@@ -8,7 +8,7 @@ import mlflow
 import mlflow.sklearn
 
 # ✅ MLflow 서버 주소 설정
-mlflow.set_tracking_uri("http://mlflow:5000")
+mlflow.set_tracking_uri("http://localhost:5500")
 mlflow.set_experiment("DiseasePrediction")
 
 # ✅ 절대경로 기반 CSV 경로 설정

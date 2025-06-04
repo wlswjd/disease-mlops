@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+
+  # ───── MLflow Service ─────
+  mlflow:
+    image: ghcr.io/mlflow/mlflow
+    container_name: mlflow
+    ports:
+      - "5500:5000"
+    environment:
+      - MLFLOW_TRACKING_URI=http://0.0.0.0:5000
+      - MLFLOW_ARTIFACT_ROOT=/app/mlruns       # ✅ 중요: 내부 저장 위치 변경
+    volumes:
+      - ../mlflow_logs:/app/mlruns             # ✅ 중요: 외부 폴더와 바인딩
+    command: mlflow server --backend-store-uri /app/mlruns --default-artifact-root /app/mlruns --host 0.0.0.0
+
+
+  # ───── Airflow Webserver ─────
+  airflow-webserver:
+    image: apache/airflow:2.7.0
+    container_name: airflow-webserver
+    depends_on:
+      - airflow-scheduler
+    ports:
+      - "8080:8080"
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile   
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__CORE__FERNET_KEY=YOUR_RANDOM_KEY
+      - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=False
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    env_file:
+      - ../.env
+    volumes:
+      - ../dags:/opt/airflow/dags
+      - ../scripts:/app/scripts
+      - ../data:/app/data
+      - airflow_db:/opt/airflow
+    command: webserver
+
+  # ───── Airflow Scheduler ─────
+  airflow-scheduler:
+    image: apache/airflow:2.7.0
+    container_name: airflow-scheduler
+    depends_on:
+      - mlflow
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
+    env_file:
+      - ../.env
+    volumes:
+      - ../dags:/opt/airflow/dags
+      - ../scripts:/app/scripts
+      - ../data:/app/data
+      - airflow_db:/opt/airflow
+    command: scheduler
+
+  # ───── BentoML ─────
+  bentoml:
+    build:
+      context: ..
+      dockerfile: docker/bentoml/Dockerfile
+    container_name: bentoml-service
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mlflow
+
+
+volumes:
+  airflow_db:

@@ -7,3 +7,17 @@ venv/
 mlruns/
 mlflow_logs/
 bento_bundle/
+# Python
+__pycache__/
+*.pyc
+
+# BentoML & MLflow logs
+mlflow_logs/
+bentoml_store/
+
+# MacOS
+.DS_Store
+
+# 환경 파일
+.env
+

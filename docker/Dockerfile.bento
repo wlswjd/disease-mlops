@@ -1,0 +1,18 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# 필수 패키지 설치
+RUN pip install --no-cache-dir pandas scikit-learn bentoml
+
+# 코드 복사
+COPY ./scripts/train.py /app/train.py
+COPY ./bento_service /app/bento_service
+COPY ./data /app/data
+
+# 모델 학습 (이미지 빌드 시 실행)
+RUN python train.py
+
+# API 서빙
+CMD ["bentoml", "serve", "bento_service.service:svc", "--port", "3000"]
+
